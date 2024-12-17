@@ -1,5 +1,6 @@
-import 'package:archive/archive.dart';
 import 'dart:convert' as convert;
+
+import 'package:archive/archive.dart';
 import 'package:epubx/src/utils/zip_path_utils.dart';
 import 'package:epubx/src/writers/epub_package_writer.dart';
 
@@ -16,12 +17,10 @@ class EpubWriter {
     var arch = Archive();
 
     // Add simple metadata
-    arch.addFile(ArchiveFile.noCompress(
-        'mimetype', 20, convert.utf8.encode('application/epub+zip')));
+    arch.addFile(ArchiveFile('mimetype', 20, convert.utf8.encode('application/epub+zip')));
 
     // Add Container file
-    arch.addFile(ArchiveFile('META-INF/container.xml', _container_file.length,
-        convert.utf8.encode(_container_file)));
+    arch.addFile(ArchiveFile('META-INF/container.xml', _container_file.length, convert.utf8.encode(_container_file)));
 
     // Add all content to the archive
     book.Content!.AllFiles!.forEach((name, file) {
@@ -33,19 +32,13 @@ class EpubWriter {
         content = convert.utf8.encode(file.Content!);
       }
 
-      arch.addFile(ArchiveFile(
-          ZipPathUtils.combine(book.Schema!.ContentDirectoryPath, name)!,
-          content!.length,
-          content));
+      arch.addFile(ArchiveFile(ZipPathUtils.combine(book.Schema!.ContentDirectoryPath, name)!, content!.length, content));
     });
 
     // Generate the content.opf file and add it to the Archive
     var contentopf = EpubPackageWriter.writeContent(book.Schema!.Package!);
 
-    arch.addFile(ArchiveFile(
-        ZipPathUtils.combine(book.Schema!.ContentDirectoryPath, 'content.opf')!,
-        contentopf.length,
-        convert.utf8.encode(contentopf)));
+    arch.addFile(ArchiveFile(ZipPathUtils.combine(book.Schema!.ContentDirectoryPath, 'content.opf')!, contentopf.length, convert.utf8.encode(contentopf)));
 
     return arch;
   }
